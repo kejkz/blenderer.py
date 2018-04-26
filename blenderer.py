@@ -300,7 +300,6 @@ def main():
     check_file_exist()
     check_cpu()
     options = take_filter_args()
-    import pdb;pdb.set_trace()
     LOGGER.info('Additional filter script arguments: %s', options)
     rendering_options = prepare_rendering_options()
     LOGGER.debug('Rendering options: %s', rendering_options)
