@@ -20,9 +20,9 @@ Requirements
 
  - Download [blender](https://www.blender.org/download/Blender2.79/blender-2.79b-macOS-10.6.dmg/) and move it to the `/Applications` directory
 
- - Add blender to your path
+ - Add blender executable to your path `/Applications/blender/Contents/MacOs/blender`
 
- - Install ffmpeg and add it to your path
+ - Install `ffmpeg` and add it to your path
 
 ```bash
 brew install ffmpeg
