@@ -75,7 +75,7 @@ CORES_ENABLED = LOGICAL_CORES - RESERVED_CORES
 AUTO_DELETE_TEMP = True
 AUTO_OVERWRITE = True
 SCRIPT_NAME = os.path.basename(__file__)
-SCRIPT_PATH = os.path.realpath(__file__)
+SCRIPT_PATH = os.path.dirname(__file__)
 ROOT_PATH = os.path.dirname(bpy.data.filepath)
 FILTER_SCRIPT_PATH = os.path.join(SCRIPT_PATH, 'filterer.py')
 
@@ -304,6 +304,7 @@ def main():
     rendering_options = prepare_rendering_options()
     LOGGER.debug('Rendering options: %s', rendering_options)
     render(rendering_options.start_frame, rendering_options.total_frames, options)
+
 
 if __name__ == '__main__':
     main()
