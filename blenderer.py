@@ -22,7 +22,8 @@ RenderingOptions = namedtuple(
         'video_format',
         'video_codec',
         'x_resolution',
-        'y_resolution'
+        'y_resolution',
+        'render_filepath'
     ]
 )
 
@@ -84,7 +85,6 @@ BLENDER_EXEC_PATH = bpy.app.binary_path
 BLENDER_FILE_PATH = os.path.join(ROOT_PATH, bpy.path.basename(bpy.context.blend_data.filepath))
 BLENDER_ENGINE = 'BLENDER_RENDER'
 VIDEO_EXTENSION = 'mp4'
-OUTPUT_FILE_PATH = '{}.{}'.format(os.path.splitext(bpy.context.blend_data.filepath)[0], VIDEO_EXTENSION)
 
 AUDIO_MIXRATES = ('44100', '48000', '96000', '192000', )
 BLENDER_IMAGE_FORMATS = (
@@ -128,9 +128,9 @@ def render_command(start_frame, end_frame, output_file_path, filter_options=None
         start_frame, end_frame, output_file_path, ' '.join(filter_options))
 
 
-def merge_command(concat_file_path):
+def merge_command(concat_file_path, output_file_path):
     '''Merge temporary video output files'''
-    return 'ffmpeg -f concat -safe 0 -y -i {} -c copy {}'.format(concat_file_path, OUTPUT_FILE_PATH)
+    return 'ffmpeg -f concat -safe 0 -y -i {} -c copy {}'.format(concat_file_path, output_file_path)
 
 
 def audio_command(input_file):
@@ -153,7 +153,10 @@ def call_render_commands(commands):
         raise BlenderRenderingError('Something went wrong with rendering process')
 
 
-def render(start_frame, total_frames, filter_options):
+def render(render_options: RenderingOptions,  filter_options):
+    total_frames = render_options.total_frames
+    start_frame = render_options.start_frame
+
     portion_of_frames_per_core = math.ceil(total_frames / CORES_ENABLED)
     end_frame = start_frame + portion_of_frames_per_core
 
@@ -177,11 +180,13 @@ def render(start_frame, total_frames, filter_options):
 
     call_render_commands(render_commands)
 
-    merge_video_files_command = merge_command(concat_video_list_path)
+    merge_video_files_command = merge_command(concat_video_list_path, render_options.render_filepath)
 
     LOGGER.debug(merge_video_files_command)
 
     subprocess.call(merge_video_files_command, shell=True)
+
+    LOGGER.info('Output file created at %s', render_options.render_filepath)
 
     TEMP_DIR.cleanup()
 
@@ -259,7 +264,8 @@ def prepare_rendering_options(scene_name='Scene'):
                 y_resolution=resolution[1],
                 file_format=scene.render.image_settings.file_format,
                 video_format=scene.render.ffmpeg.format,
-                video_codec=scene.render.ffmpeg.codec
+                video_codec=scene.render.ffmpeg.codec,
+                render_filepath=bpy.path.abspath(scene.render.filepath)
             )
 
     try:
@@ -299,11 +305,11 @@ def take_filter_args():
 def main():
     check_file_exist()
     check_cpu()
-    options = take_filter_args()
-    LOGGER.info('Additional filter script arguments: %s', options)
+    filter_options = take_filter_args()
+    LOGGER.info('Additional filter script arguments: %s', filter_options)
     rendering_options = prepare_rendering_options()
     LOGGER.debug('Rendering options: %s', rendering_options)
-    render(rendering_options.start_frame, rendering_options.total_frames, options)
+    render(rendering_options, filter_options)
 
 
 if __name__ == '__main__':
