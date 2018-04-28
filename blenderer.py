@@ -123,7 +123,11 @@ def set_output_extension(render_options: RenderingOptions) -> str:
 
 
 def render_command(start_frame: int, end_frame: int, output_file_path: str, filter_options: List = None) -> str:
-    '''Creates a render command for all of the plaforms'''
+    '''
+    Creates a blender render command for all of the plaforms.
+    If an empty list of filtering options is provided, this command
+    doesn't include filtering script into the rendering pipeline
+    '''
     if not filter_options:
         return '{} -b {} -s {} -e {} -o {} -a'.format(
             BLENDER_EXEC_PATH, BLENDER_FILE_PATH, start_frame, end_frame, output_file_path)
