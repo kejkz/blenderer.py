@@ -7,8 +7,9 @@ import multiprocessing
 import subprocess
 import math
 import tempfile
-from typing import NamedTuple
+from typing import NamedTuple, List
 from collections import namedtuple
+import time
 
 
 RenderingOptions = namedtuple(
@@ -121,11 +122,15 @@ def set_output_extension(render_options: RenderingOptions) -> str:
         return 'mov'
 
 
-def render_command(start_frame, end_frame, output_file_path, filter_options=None):
+def render_command(start_frame: int, end_frame: int, output_file_path: str, filter_options: List = None) -> str:
     '''Creates a render command for all of the plaforms'''
-    return '{} -b {} -P {} -s {} -e {} -o {} -a -- {}'.format(
-        BLENDER_EXEC_PATH, BLENDER_FILE_PATH, FILTER_SCRIPT_PATH,
-        start_frame, end_frame, output_file_path, ' '.join(filter_options))
+    if not filter_options:
+        return '{} -b {} -s {} -e {} -o {} -a'.format(
+            BLENDER_EXEC_PATH, BLENDER_FILE_PATH, start_frame, end_frame, output_file_path)
+    else:
+        return '{} -b {} -P {} -s {} -e {} -o {} -a  -- {}'.format(
+            BLENDER_EXEC_PATH, BLENDER_FILE_PATH, FILTER_SCRIPT_PATH,
+            start_frame, end_frame, output_file_path, ' '.join(filter_options))
 
 
 def merge_command(concat_file_path, output_file_path):
@@ -133,7 +138,7 @@ def merge_command(concat_file_path, output_file_path):
     return 'ffmpeg -f concat -safe 0 -y -i {} -c copy {}'.format(concat_file_path, output_file_path)
 
 
-def audio_command(input_file):
+def add_audio_command(input_file):
     '''Merges audio from original video to a final video file'''
     return 'ffmpeg -y -i {} -c:v copy -c:a copy -map 0:v:0 -map 1:a:0 -movflags faststart {}'.format(input_file, OUTPUT_FILE_PATH)
 
@@ -146,7 +151,7 @@ def temp_video_file_path(core, start_frame, end_frame):
 
 
 def call_render_commands(commands):
-    processes = [subprocess.Popen(com, shell=True) for com in commands]
+    processes = [subprocess.Popen(comm, shell=True) for comm in commands]
     exit_codes = [p.wait() for p in processes]
 
     if 1 in exit_codes:
@@ -295,21 +300,24 @@ def take_filter_args():
         argv = argv[argv.index('--') + 1:]
 
     usage_text = (
-        'Render the scene using multiple instances of Blender'
-        ' blender --background --python {} -- [options]'.format(SCRIPT_NAME)
+        'Render the scene using multiple instances of Blender and combine them using FFMPEG library'
+        ' blender -b -P {} -- [filter_options]'.format(SCRIPT_NAME)
     )
 
     return argv
 
 
 def main():
+    start_time =  time.time()
     check_file_exist()
     check_cpu()
     filter_options = take_filter_args()
-    LOGGER.info('Additional filter script arguments: %s', filter_options)
+    if filter_options:
+        LOGGER.info('Additional filter script arguments: %s', filter_options)
     rendering_options = prepare_rendering_options()
     LOGGER.debug('Rendering options: %s', rendering_options)
     render(rendering_options, filter_options)
+    LOGGER.info('Rendering took %.2f seconds.', time.time() - start_time)
 
 
 if __name__ == '__main__':

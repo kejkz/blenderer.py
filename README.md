@@ -50,8 +50,10 @@ brew install ffmpeg
 git clone git@bitbucket.org:vkaran/blenderer.git
 ```
 
-- For easier invoking through command line, set environment variable BLENDERER to exact location of `blederer.py` script
-```
+- For easier invoking through command line, set environment variable BLENDERER to exact location of `blederer.py` script and add blender executable to the PATH environment variable
+
+```bash
+EXPORT PATH=/Applications/blender/Contents/MacOS:$PATH
 EXPORT BLENDERER=/path/to/blenderer.py
 ```
 
@@ -74,11 +76,17 @@ export BLENDERER=/path/to/blenderer.py
 ## Usage
 
 If everything is added to the environment, you can run
-multi-processor rendering script using something similar
-as script provided
+multi-processor rendering using the additional filtering
+by calling the blender with these argumenets:
 
-```
+```bash
 blender -b someblenderfile.blend -P $BLENDERER -- -t '"Just Testing"' -c 0.5 0.5 0.5
+```
+
+To call a scene rendering without additional filtering:
+
+```bash
+blender -b somescene.blend -P $BLENDERER
 ```
 
 Video output file is created in the same path as set in
