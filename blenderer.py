@@ -46,8 +46,8 @@ class ResolutionNotDivisableException(Exception):
 
 class UpdateAutoSplitException(Exception):
     pass
-
-
+   
+    
 def check_blender_version():
     blender_file_version = bpy.data.version
     blender_app_version = bpy.app.version
@@ -94,6 +94,7 @@ BLENDER_IMAGE_FORMATS = (
 
 TEMP_DIR = tempfile.TemporaryDirectory(prefix='renderer')
 
+
 def check_file_exist():
     if not BLENDER_FILE_PATH:
         raise ValueError('Cannot render empty file!')
@@ -129,8 +130,9 @@ def render_command(start_frame: int, end_frame: int, output_file_path: str, filt
     doesn't include filtering script into the rendering pipeline
     '''
     if not filter_options:
-        return '{} -b {} -s {} -e {} -o {} -a'.format(
-            BLENDER_EXEC_PATH, BLENDER_FILE_PATH, start_frame, end_frame, output_file_path)
+        # return '{} -b {} -s {} -e {} -o {} -a'.format(
+          #  BLENDER_EXEC_PATH, BLENDER_FILE_PATH, start_frame, end_frame, output_file_path)
+        return [BLENDER_EXEC_PATH, '-b', BLENDER_FILE_PATH, '-s', str(start_frame), '-e', str(end_frame), '-o', output_file_path, '-a']
     else:
         return '{} -b {} -P {} -s {} -e {} -o {} -a  -- {}'.format(
             BLENDER_EXEC_PATH, BLENDER_FILE_PATH, FILTER_SCRIPT_PATH,

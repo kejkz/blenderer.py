@@ -45,6 +45,7 @@ def parse_optional_args():
 
 
 def prepare_scene(scene_name, options):
+    bpy.context.screen.scene = bpy.data.scenes['Scene']
     color = tuple(options.color)
     if len(color) > 3:
         raise WrongColorException('Wrong color for the element')

@@ -28,7 +28,7 @@ all major operating systems (Windows, MacOS, Linux).
 
  ```
  SETX /M PATH "C:\Program Files\ffmpeg\bin;%PATH%"
- SETX /M PATH "C:\Program Files\blender;%PATH%"
+ SETX /M PATH "C:\Program Files\Blender Foundation\Blender\;%PATH%"
  SETX /M BLENDERER "C:\Documents\blenderer\blenderer.py"
  ```
 
@@ -88,6 +88,12 @@ To call a scene rendering without additional filtering:
 ```bash
 blender -b somescene.blend -P $BLENDERER
 ```
+
+On Windows is also similar:
+
+```
+blender -b preview.blend -P %BLENDERER%
+``` 
 
 Video output file is created in the same path as set in
 scene rendering.
