@@ -132,7 +132,7 @@ def render_command(start_frame: int, end_frame: int, output_file_path: str, filt
     if not filter_options:
         return [BLENDER_EXEC_PATH, '-b', BLENDER_FILE_PATH, '-s', str(start_frame), '-e', str(end_frame), '-o', output_file_path, '-a']
     else:
-        return [BLENDER_EXEC_PATH, '-b', BLENDER_FILE_PATH, '-P', FILTER_SCRIPT_PATH, '-s', str(start_frame), '-e', str(end_frame), '-o', output_file_path, '-a', '--', ' '.join(filter_options)]
+        return [BLENDER_EXEC_PATH, '-b', BLENDER_FILE_PATH, '-P', FILTER_SCRIPT_PATH, '-s', str(start_frame), '-e', str(end_frame), '-o', output_file_path, '-a', '--'] + filter_options
 
 
 def merge_command(concat_file_path, output_file_path):
