@@ -46,8 +46,8 @@ class ResolutionNotDivisableException(Exception):
 
 class UpdateAutoSplitException(Exception):
     pass
-   
-    
+
+
 def check_blender_version():
     blender_file_version = bpy.data.version
     blender_app_version = bpy.app.version
@@ -130,13 +130,9 @@ def render_command(start_frame: int, end_frame: int, output_file_path: str, filt
     doesn't include filtering script into the rendering pipeline
     '''
     if not filter_options:
-        # return '{} -b {} -s {} -e {} -o {} -a'.format(
-          #  BLENDER_EXEC_PATH, BLENDER_FILE_PATH, start_frame, end_frame, output_file_path)
         return [BLENDER_EXEC_PATH, '-b', BLENDER_FILE_PATH, '-s', str(start_frame), '-e', str(end_frame), '-o', output_file_path, '-a']
     else:
-        return '{} -b {} -P {} -s {} -e {} -o {} -a  -- {}'.format(
-            BLENDER_EXEC_PATH, BLENDER_FILE_PATH, FILTER_SCRIPT_PATH,
-            start_frame, end_frame, output_file_path, ' '.join(filter_options))
+        return [BLENDER_EXEC_PATH, '-b', BLENDER_FILE_PATH, '-P', FILTER_SCRIPT_PATH, '-s', str(start_frame), '-e', str(end_frame), '-o', output_file_path, '-a', '--', ' '.join(filter_options)]
 
 
 def merge_command(concat_file_path, output_file_path):
@@ -156,8 +152,8 @@ def temp_video_file_path(core, start_frame, end_frame):
     return output_filename
 
 
-def call_render_commands(commands):
-    processes = [subprocess.Popen(comm, shell=True) for comm in commands]
+def call_render_commands(render_commands):
+    processes = [subprocess.Popen(comm) for comm in render_commands]
     exit_codes = [p.wait() for p in processes]
 
     if 1 in exit_codes:
@@ -178,7 +174,7 @@ def render(render_options: RenderingOptions,  filter_options):
     for core in range(1, CORES_ENABLED + 1):
         output_file_path = temp_video_file_path(core, start_frame, end_frame)
         command = render_command(start_frame, end_frame, output_file_path, filter_options)
-        LOGGER.info('Rendering command:\n %s', command)
+        LOGGER.info('Render command:\n %s', command)
         render_commands.append(command)
         concat_file_paths.append(output_file_path)
         start_frame = end_frame + 1
