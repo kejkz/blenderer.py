@@ -1,0 +1,32 @@
+{
+  "scene": "Scene",
+  "objects": [
+    {
+      "name": "plc01",
+      "render": false,
+      "value": "//Images/image.png"
+    },
+    {
+      "name": "txt01",
+      "render": false,
+      "value": "Render me jolly"
+    },
+    {
+      "name": "txtother01",
+      "render": true,
+      "value": "Render me jolly"
+    }
+  ],
+  "sequences": [
+    {
+      "name": "ColorScene",
+      "render": false,
+      "value": null
+    },
+    {
+      "name": "clr01",
+      "render": true,
+      "value": "#001000"
+    }
+  ]
+}
