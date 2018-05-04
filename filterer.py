@@ -41,7 +41,7 @@ def parse_optional_args():
 
     parser = argparse.ArgumentParser(description=usage_text)
 
-    parser.add_argument('-so', '--scene_options', type=json.loads, help='Provide scene rendering options as JSON')
+    parser.add_argument('scene_options', type=json.loads, help='Provide scene rendering options as JSON')
 
     args = parser.parse_args(argv)
 

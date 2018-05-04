@@ -28,6 +28,10 @@ RenderingOptions = namedtuple(
     ]
 )
 
+class InputFileNotProvided(Exception):
+    pass
+
+
 class NotEnoughFramesException(Exception):
     pass
 
@@ -97,7 +101,7 @@ TEMP_DIR = tempfile.TemporaryDirectory(prefix='renderer')
 
 def check_file_exist():
     if not BLENDER_FILE_PATH:
-        raise ValueError('Cannot render empty file!')
+        raise InputFileNotProvided('Cannot render empty file!')
 
 
 def set_output_extension(render_options: RenderingOptions) -> str:
@@ -130,9 +134,15 @@ def render_command(start_frame: int, end_frame: int, output_file_path: str, filt
     doesn't include filtering script into the rendering pipeline
     '''
     if not filter_options:
-        return [BLENDER_EXEC_PATH, '-b', BLENDER_FILE_PATH, '-s', str(start_frame), '-e', str(end_frame), '-o', output_file_path, '-a']
+        return [
+            BLENDER_EXEC_PATH, '-b', BLENDER_FILE_PATH,
+            '-s', str(start_frame), '-e', str(end_frame), '-o', output_file_path, '--verbose', '0', '-a']
     else:
-        return [BLENDER_EXEC_PATH, '-b', BLENDER_FILE_PATH, '-P', FILTER_SCRIPT_PATH, '-s', str(start_frame), '-e', str(end_frame), '-o', output_file_path, '-a', '--'] + filter_options
+        return [
+            BLENDER_EXEC_PATH, '-b', BLENDER_FILE_PATH, '-P', FILTER_SCRIPT_PATH,
+            '-s', str(start_frame), '-e', str(end_frame),
+            '-o', output_file_path,
+            '--verbose', '0', '-a', '--', ' '.join(filter_options)]
 
 
 def merge_command(concat_file_path, output_file_path):
@@ -153,11 +163,11 @@ def temp_video_file_path(core, start_frame, end_frame):
 
 
 def call_render_commands(render_commands):
-    processes = [subprocess.Popen(comm) for comm in render_commands]
+    processes = [subprocess.Popen(comm, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT) for comm in render_commands]
     exit_codes = [p.wait() for p in processes]
 
     if 1 in exit_codes:
-        raise BlenderRenderingError('Something went wrong with rendering process')
+        raise BlenderRenderingError('Something went wrong with one of the rendering subprocesses')
 
 
 def render(render_options: RenderingOptions,  filter_options):
@@ -311,15 +321,19 @@ def take_filter_args():
 
 def main():
     start_time =  time.time()
-    check_file_exist()
-    check_cpu()
-    filter_options = take_filter_args()
-    if filter_options:
-        LOGGER.info('Additional filter script arguments: %s', filter_options)
-    rendering_options = prepare_rendering_options()
-    LOGGER.debug('Rendering options: %s', rendering_options)
-    render(rendering_options, filter_options)
-    LOGGER.info('Rendering took %.2f seconds.', time.time() - start_time)
+    try:
+        check_file_exist()
+        check_cpu()
+        filter_options = take_filter_args()
+        if filter_options:
+            LOGGER.info('Additional filter script arguments: %s', filter_options)
+        rendering_options = prepare_rendering_options()
+        LOGGER.debug('Rendering options: %s', rendering_options)
+        render(rendering_options, filter_options)
+        LOGGER.info('Rendering took %.2f seconds.', time.time() - start_time)
+    except (InputFileNotProvided, BlenderRenderingError) as err:
+        LOGGER.fatal(err)
+        exit(1)
 
 
 if __name__ == '__main__':
