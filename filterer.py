@@ -41,7 +41,7 @@ def parse_optional_args():
 
     parser = argparse.ArgumentParser(description=usage_text)
 
-    parser.add_argument('scene_options', type=json.loads, help='Provide scene rendering options as JSON')
+    parser.add_argument('-so' , '--scene-options', type=json.loads, help='Scene rendering options as JSON')
 
     args = parser.parse_args(argv)
 
@@ -84,4 +84,4 @@ def main(options):
 
 if __name__ == '__main__':
     modification_options = parse_optional_args()
-    main(options=modification_options)
+    main(options=modification_options.scene_options)

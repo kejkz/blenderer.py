@@ -142,12 +142,12 @@ def render_command(start_frame: int, end_frame: int, output_file_path: str, filt
             BLENDER_EXEC_PATH, '-b', BLENDER_FILE_PATH, '-P', FILTER_SCRIPT_PATH,
             '-s', str(start_frame), '-e', str(end_frame),
             '-o', output_file_path,
-            '--verbose', '0', '-a', '--', ' '.join(filter_options)]
+            '--verbose', '0', '-a', '--', filter_options[0], "{}".format(' '.join(filter_options[1:]))]
 
 
 def merge_command(concat_file_path, output_file_path):
     '''Merge temporary video output files'''
-    return 'ffmpeg -f concat -safe 0 -y -i {} -c copy {}'.format(concat_file_path, output_file_path)
+    return 'ffmpeg -f concat -safe 0 -y -i {} -c copy {} -loglevel panic'.format(concat_file_path, output_file_path)
 
 
 def add_audio_command(input_file):
@@ -162,8 +162,12 @@ def temp_video_file_path(core, start_frame, end_frame):
     return output_filename
 
 
-def call_render_commands(render_commands):
-    processes = [subprocess.Popen(comm, stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT) for comm in render_commands]
+def call_render_commands(render_commands, verbose=False):
+    if verbose:
+        stdout = subprocess.STDOUT
+    else:
+        stdout = subprocess.DEVNULL
+    processes = [subprocess.Popen(comm, stdout=stdout, stderr=subprocess.STDOUT) for comm in render_commands]
     exit_codes = [p.wait() for p in processes]
 
     if 1 in exit_codes:
