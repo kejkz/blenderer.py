@@ -26,6 +26,11 @@ def set_object_image(blender_object, imagepath):
     blender_object.active_material.active_texture.image.filepath = imagepath
 
 
+def hex_to_rgb(hex_color):
+    h = hex_color.lstrip('#')
+    return tuple(int(h[i:i+2], 16) for i in (0, 2 ,4))
+
+
 def parse_optional_args():
     argv = sys.argv
 
@@ -52,7 +57,7 @@ def parse_optional_args():
     return args
 
 
-def prepare_rendering(options):
+def prepare_rendering(scene_options):
     '''Prepares the scene before rendering begins'''
     scene_name = scene_options['scene']
     bpy.context.screen.scene = bpy.data.scenes[scene_name]
@@ -71,11 +76,11 @@ def prepare_rendering(options):
         print('Missing "%s" modification options in %s', e.value, scene_options)
         exit(1)
 
-    for sequence in scene_options['scenes']:
-        currend_seq = bpy.data.scenes[scene_name].sequence_editor.sequences_all[sequence['name']]
+    for sequence in scene_options['sequences']:
+        current_seq = bpy.data.scenes[scene_name].sequence_editor.sequences_all[sequence['name']]
         current_seq.mute = sequence['render']
         if current_seq.type == COLOR_TYPE:
-            current_seq.color = sequence['value']
+            current_seq.color = hex_to_rgb(sequence['value'])
 
 
 def main(options):
