@@ -2,6 +2,8 @@ import argparse
 import os
 import sys
 import json
+import mathutils
+import struct
 
 import bpy
 
@@ -26,9 +28,9 @@ def set_object_image(blender_object, imagepath):
     blender_object.active_material.active_texture.image.filepath = imagepath
 
 
-def hex_to_rgb(hex_color):
-    h = hex_color.lstrip('#')
-    return tuple(int(h[i:i+2], 16) for i in (0, 2 ,4))
+def hex_to_rgb(rgb_str):
+    int_tuple = struct.unpack('BBB', bytes.fromhex(rgb_str.lstrip('#')))
+    return tuple([val/255 for val in int_tuple])
 
 
 def parse_optional_args():
@@ -69,7 +71,8 @@ def prepare_rendering(scene_options):
             if blender_object.type == TEXT_TYPE:
                 blender_object.data.body = options['value']
             elif blender_object.type == PLACEHOLDER_TYPE:
-                set_object_image(blender_object, options['value'])
+                if options['value']:
+                    set_object_image(blender_object, options['value'])
             else:
                 print('Unknown object type "{}", skipping...'.format(blender_object.type))
     except KeyError as e:
@@ -78,7 +81,7 @@ def prepare_rendering(scene_options):
 
     for sequence in scene_options['sequences']:
         current_seq = bpy.data.scenes[scene_name].sequence_editor.sequences_all[sequence['name']]
-        current_seq.mute = sequence['render']
+        current_seq.mute = not sequence['render']
         if current_seq.type == COLOR_TYPE:
             current_seq.color = hex_to_rgb(sequence['value'])
 
