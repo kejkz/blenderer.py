@@ -67,7 +67,7 @@ def prepare_rendering(scene_options):
     try:
         for options in scene_options['objects']:
             blender_object = bpy.data.objects[options['name']]
-            blender_object.hide_render = options['render']
+            blender_object.hide_render = options['hide']
             if blender_object.type == TEXT_TYPE:
                 blender_object.data.body = options['value']
             elif blender_object.type == PLACEHOLDER_TYPE:
@@ -81,7 +81,7 @@ def prepare_rendering(scene_options):
 
     for sequence in scene_options['sequences']:
         current_seq = bpy.data.scenes[scene_name].sequence_editor.sequences_all[sequence['name']]
-        current_seq.mute = not sequence['render']
+        current_seq.mute = sequence['hide']
         if current_seq.type == COLOR_TYPE:
             current_seq.color = hex_to_rgb(sequence['value'])
 
