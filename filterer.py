@@ -4,10 +4,13 @@ import sys
 import json
 import mathutils
 import struct
+import urllib3
+import urllib.parse
 
 import bpy
 
 SCRIPT_NAME = os.path.basename(__file__)
+DOWNLOAD_PATH = os.path.join(os.path.dirname(bpy.data.filepath), 'Images')
 
 # Object types
 TEXT_TYPE = 'FONT'
@@ -21,6 +24,24 @@ COLOR_TYPE = 'COLOR'
 
 class WrongColorException(Exception):
     pass
+
+
+def download_image(url):
+    '''Download image and return stored absolute file path'''
+    local_path = os.path.join(DOWNLOAD_PATH, os.path.basename(url.path))
+    http = urllib3.PoolManager()
+    r = http.request('GET', url.geturl(), preload_content=False)
+    chunk_size = 512
+
+    with open(local_path, 'wb') as out:
+        while True:
+            data = r.read(chunk_size)
+            if not data:
+                break
+            out.write(data)
+
+    r.release_conn()
+    return os.path.abspath(path)
 
 
 def set_object_image(blender_object, imagepath):
@@ -72,7 +93,12 @@ def prepare_rendering(scene_options):
                 blender_object.data.body = options['value']
             elif blender_object.type == PLACEHOLDER_TYPE:
                 if options['value']:
-                    set_object_image(blender_object, options['value'])
+                    url = urllib.parse.urlparse(options['value'])
+                    if url.scheme == 'http':
+                        local_path = download_image(url)
+                    else:
+                        local_path = url.path
+                    set_object_image(blender_object, local_path)
             else:
                 print('Unknown object type "{}", skipping...'.format(blender_object.type))
     except KeyError as e:
