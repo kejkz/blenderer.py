@@ -1,39 +1,32 @@
-#!/bin/sh
-
-scene_options=$(cat <<EOF
 {
   "scene": "Scene",
   "objects": [
     {
       "name": "plc01",
-      "render": true,
+      "hide": false,
       "value": "//Images/image.png"
     },
     {
       "name": "txt01",
-      "render": true,
-      "value": "Test Render Layout"
+      "hide": false,
+      "value": "Render me jolly"
     },
     {
       "name": "txtother01",
-      "render": false,
-      "value": "Test Render Layout"
+      "hide": false,
+      "value": "Render me jolly"
     }
   ],
   "sequences": [
     {
       "name": "ColorScene",
-      "render": false,
+      "hide": false,
       "value": null
     },
     {
       "name": "clr01",
-      "render": true,
+      "hide": false,
       "value": "#001000"
     }
   ]
 }
-EOF
-)
-
-blender -b $1 -P $BLENDERER -- --scene-options "$scene_options"
