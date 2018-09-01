@@ -86,27 +86,27 @@ scene_options=$(cat <<EOF
   "assets": [
     {
       "name": "plc01",
-      "render": true,
+      "hide": true,
       "value": "//Images/image.png"
     },
     {
       "name": "txt01",
-      "render": true,
+      "hide": true,
       "value": "Test Render Layout"
     },
     {
       "name": "txtother01",
-      "render": false,
+      "hide": false,
       "value": "Test Render Layout"
     },
     {
       "name": "ColorScene",
-      "render": false,
+      "hide": false,
       "value": null
     },
     {
       "name": "clr01",
-      "render": true,
+      "hide": true,
       "value": "#001000"
     }
   ]
