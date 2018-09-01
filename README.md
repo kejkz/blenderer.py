@@ -7,7 +7,7 @@ rendering and `ffmpeg` library to create composite
 animation videos from blender files. It should work on
 all major operating systems (Windows, MacOS, Linux).
 
-## Instalation
+## Installation
 
 ### Requirements
 
@@ -59,7 +59,7 @@ EXPORT BLENDERER=/path/to/blenderer.py
 
 ### Linux
 
-- Use package manager to install ffmpeg and put it inside
+- Use package manager to install `ffmpeg` and put it inside
 environment path
 
 ```
@@ -80,7 +80,40 @@ multi-processor rendering using the additional filtering
 by calling the blender with these argumenets:
 
 ```bash
-blender -b someblenderfile.blend -P $BLENDERER -- -t '"Just Testing"' -c 0.5 0.5 0.5
+scene_options=$(cat <<EOF
+{
+  "scene": "Scene",
+  "assets": [
+    {
+      "name": "plc01",
+      "render": true,
+      "value": "//Images/image.png"
+    },
+    {
+      "name": "txt01",
+      "render": true,
+      "value": "Test Render Layout"
+    },
+    {
+      "name": "txtother01",
+      "render": false,
+      "value": "Test Render Layout"
+    },
+    {
+      "name": "ColorScene",
+      "render": false,
+      "value": null
+    },
+    {
+      "name": "clr01",
+      "render": true,
+      "value": "#001000"
+    }
+  ]
+}
+EOF
+)
+blender -b someblenderfile.blend -P $BLENDERER -- "$scene_options"
 ```
 
 To call a scene rendering without additional filtering:
@@ -89,11 +122,11 @@ To call a scene rendering without additional filtering:
 blender -b somescene.blend -P $BLENDERER
 ```
 
-On Windows is also similar:
+On Windows it's quite similar:
 
 ```
 blender -b preview.blend -P %BLENDERER%
-``` 
+```
 
 Video output file is created in the same path as set in
-scene rendering.
+scene rendering in moment of writing this document.

@@ -6,4 +6,4 @@ pipelines:
           - pip
         script:
           - apt-get update && apt-get install -y blender libav-tools ffmpeg
-          - ./example.sh
+          - ./example.sh test01.blend

@@ -1,34 +1,36 @@
 #!/bin/sh
+blender_path=$(which blender)
+blender --version
+echo "blender path: ${blender_path}"
+echo "blenderer.py path: ${BLENDERER}"
 
 scene_options=$(cat <<EOF
 {
   "scene": "Scene",
-  "objects": [
+  "assets": [
     {
       "name": "plc01",
-      "render": true,
-      "value": "//Images/image.png"
+      "hide": true,
+      "value": "https://dl.dropboxusercontent.com/s/pn37zg96h7je0ch/coca-cola.png"
     },
     {
       "name": "txt01",
-      "render": true,
+      "hide": true,
       "value": "Test Render Layout"
     },
     {
       "name": "txtother01",
-      "render": false,
+      "hide": false,
       "value": "Test Render Layout"
-    }
-  ],
-  "sequences": [
+    },
     {
       "name": "ColorScene",
-      "render": false,
+      "hide": false,
       "value": null
     },
     {
       "name": "clr01",
-      "render": true,
+      "hide": true,
       "value": "#001000"
     }
   ]

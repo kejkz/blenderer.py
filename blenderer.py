@@ -10,7 +10,7 @@ import tempfile
 from typing import NamedTuple, List
 from collections import namedtuple
 import time
-
+import json
 
 RenderingOptions = namedtuple(
     'RenderingOptions',
@@ -78,12 +78,10 @@ LOGGER = init_logger(__name__, logging.DEBUG)
 RESERVED_CORES = 0
 LOGICAL_CORES = multiprocessing.cpu_count()
 CORES_ENABLED = LOGICAL_CORES - RESERVED_CORES
-AUTO_DELETE_TEMP = True
-AUTO_OVERWRITE = True
 SCRIPT_NAME = os.path.basename(__file__)
 SCRIPT_PATH = os.path.dirname(__file__)
 ROOT_PATH = os.path.dirname(bpy.data.filepath)
-FILTER_SCRIPT_PATH = os.path.join(SCRIPT_PATH, 'filterer.py')
+RENDERING_VERBOSITY_LEVEL = 0
 
 BLENDER_VERSION = check_blender_version()
 BLENDER_EXEC_PATH = bpy.app.binary_path
@@ -101,7 +99,7 @@ TEMP_DIR = tempfile.TemporaryDirectory(prefix='renderer')
 
 def check_file_exist():
     if not BLENDER_FILE_PATH:
-        raise InputFileNotProvided('Cannot render empty file!')
+        raise InputFileNotProvided('No blender input file provided... Exiting...')
 
 
 def set_output_extension(render_options: RenderingOptions) -> str:
@@ -125,24 +123,21 @@ def set_output_extension(render_options: RenderingOptions) -> str:
         return 'ogv'
     elif render_options.video_format == 'QUICKTIME':
         return 'mov'
+    else:
+        return ''
 
 
-def render_command(start_frame: int, end_frame: int, output_file_path: str, filter_options: List = None) -> str:
+def render_command(filepath: str, start_frame: int, end_frame: int, output_file_path: str) -> str:
     '''
-    Creates a blender render command for all of the plaforms.
+    Creates a blender render command for all of the platforms.
     If an empty list of filtering options is provided, this command
     doesn't include filtering script into the rendering pipeline
     '''
-    if not filter_options:
-        return [
-            BLENDER_EXEC_PATH, '-b', BLENDER_FILE_PATH,
-            '-s', str(start_frame), '-e', str(end_frame), '-o', output_file_path, '--verbose', '0', '-a']
-    else:
-        return [
-            BLENDER_EXEC_PATH, '-b', BLENDER_FILE_PATH, '-P', FILTER_SCRIPT_PATH,
-            '-s', str(start_frame), '-e', str(end_frame),
-            '-o', output_file_path,
-            '--verbose', '0', '-a', '--', filter_options[0], "{}".format(' '.join(filter_options[1:]))]
+    return [
+        BLENDER_EXEC_PATH, '-b', filepath,
+        '-s', str(start_frame), '-e', str(end_frame),
+        '-o', output_file_path,
+        '--verbose', str(RENDERING_VERBOSITY_LEVEL), '-a']
 
 
 def merge_command(concat_file_path, output_file_path):
@@ -174,7 +169,7 @@ def call_render_commands(render_commands, verbose=False):
         raise BlenderRenderingError('Something went wrong with one of the rendering subprocesses')
 
 
-def render(render_options: RenderingOptions,  filter_options):
+def render(blender_file_path: str, render_options: RenderingOptions) -> None:
     total_frames = render_options.total_frames
     start_frame = render_options.start_frame
 
@@ -187,8 +182,8 @@ def render(render_options: RenderingOptions,  filter_options):
 
     for core in range(1, CORES_ENABLED + 1):
         output_file_path = temp_video_file_path(core, start_frame, end_frame)
-        command = render_command(start_frame, end_frame, output_file_path, filter_options)
-        LOGGER.info('Render command:\n %s', command)
+        command = render_command(blender_file_path, start_frame, end_frame, output_file_path)
+        LOGGER.debug('Render command:\n %s', command)
         render_commands.append(command)
         concat_file_paths.append(output_file_path)
         start_frame = end_frame + 1
@@ -212,7 +207,7 @@ def render(render_options: RenderingOptions,  filter_options):
     TEMP_DIR.cleanup()
 
 
-def check_cpu():
+def check_cpu_count():
     if CORES_ENABLED == 1:
         LOGGER.warning('%s script utilizes multiple logical cores, and this system have only 1', SCRIPT_NAME)
         return
@@ -307,7 +302,7 @@ def prepare_rendering_options(scene_name='Scene'):
         exit(1)
 
 
-def take_filter_args():
+def parse_optional_args():
     argv = sys.argv
 
     if '--' not in argv:
@@ -316,29 +311,56 @@ def take_filter_args():
         argv = argv[argv.index('--') + 1:]
 
     usage_text = (
-        'Render the scene using multiple instances of Blender and combine them using FFMPEG library'
-        ' blender -b -P {} -- [filter_options]'.format(SCRIPT_NAME)
+        'Filter or alter the scene before rendering:'
+        '  blender --background --python {} -- [options]'.format(SCRIPT_NAME)
     )
 
-    return argv
+    parser = argparse.ArgumentParser(description=usage_text)
+
+    parser.add_argument('-so' , '--scene-options', type=json.loads, help='Scene rendering options as JSON')
+
+    args = parser.parse_args(argv)
+
+    if not argv:
+        parser.print_help()
+        return
+
+    return args
+
+
+def save_temp_blender_file() -> str:
+    '''Save current blend file to a temporary location before rendering'''
+    tempfile_path = os.path.join(TEMP_DIR.name, bpy.path.basename(BLENDER_FILE_PATH))
+    bpy.ops.wm.save_as_mainfile(filepath=tempfile_path)
+    return tempfile_path
 
 
 def main():
     start_time =  time.time()
     try:
         check_file_exist()
-        check_cpu()
-        filter_options = take_filter_args()
-        if filter_options:
-            LOGGER.info('Additional filter script arguments: %s', filter_options)
+        check_cpu_count()
         rendering_options = prepare_rendering_options()
         LOGGER.debug('Rendering options: %s', rendering_options)
-        render(rendering_options, filter_options)
+        filter_options = parse_optional_args()
+        if filter_options:
+            LOGGER.info('Additional filter script arguments: %s', filter_options)
+            LOGGER.info('Prepare rendering using filter options...')
+            filterer.SceneModifier(filter_options.scene_options).alter_scene()
+            LOGGER.info('Scene has been modified...')
+            LOGGER.info('Save current blender scene to a temp file...')
+            blender_file_path = save_temp_blender_file()
+            LOGGER.info('Temp file saved as: {}'.format(blender_file_path))
+        else:
+            blender_file_path = BLENDER_FILE_PATH
+        render(blender_file_path, rendering_options)
         LOGGER.info('Rendering took %.2f seconds.', time.time() - start_time)
     except (InputFileNotProvided, BlenderRenderingError) as err:
         LOGGER.fatal(err)
         exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == '__main__' and __package__ is None:
+    sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__))))
+    import filterer
     main()
