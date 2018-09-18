@@ -1,20 +1,19 @@
-# Blenderer
+# Blenderer.py
 
 ## Description
 
-Blenderer is a Python script that uses multi-processor
-rendering and `ffmpeg` library to create composite
-animation videos from blender files. It should work on
-all major operating systems (Windows, MacOS, Linux).
+`Blenderer.py` is a Python 3.5 based script that utilizes multi-processor
+capabilities and `ffmpeg` library to create composite videos from blender
+files. It is designed to work on all major operating systems (Windows, MacOS, Linux).
 
 ## Installation
 
 ### Requirements
 
-- git (2.6 and above)
-- Blender 2.70 and above
-  - Python 3.5 (version provided with Blender)
-- ffmpeg (merging videos)
+- `git` (2.6 and above)
+- `Blender` 2.70 and above
+  - `Python` 3.5 (embedded version provided with Blender)
+- `ffmpeg` (merging videos)
 
 ### Windows 10, 8, 7 (x64)
 
@@ -44,7 +43,7 @@ all major operating systems (Windows, MacOS, Linux).
 brew install ffmpeg
 ```
 
- - Clone the blenderer repository anywhere on system
+ - Clone the `blenderer.py` repository anywhere on system
 
 ```bash
 git clone git@bitbucket.org:vkaran/blenderer.git
@@ -77,7 +76,7 @@ export BLENDERER=/path/to/blenderer.py
 
 If everything is added to the environment, you can run
 multi-processor rendering using the additional filtering
-by calling the blender with these argumenets:
+by calling the blender with these arguments:
 
 ```bash
 scene_options=$(cat <<EOF

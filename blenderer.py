@@ -88,6 +88,7 @@ BLENDER_EXEC_PATH = bpy.app.binary_path
 BLENDER_FILE_PATH = os.path.join(ROOT_PATH, bpy.path.basename(bpy.context.blend_data.filepath))
 BLENDER_ENGINE = 'BLENDER_RENDER'
 VIDEO_EXTENSION = 'mp4'
+CONCAT_VIDEO_FILE_NAME = 'concat_video_list.txt'
 
 AUDIO_MIXRATES = ('44100', '48000', '96000', '192000', )
 BLENDER_IMAGE_FORMATS = (
@@ -176,7 +177,7 @@ def render(blender_file_path: str, render_options: RenderingOptions) -> None:
     portion_of_frames_per_core = math.ceil(total_frames / CORES_ENABLED)
     end_frame = start_frame + portion_of_frames_per_core
 
-    concat_video_list_path = os.path.join(TEMP_DIR.name, 'concat_video_list.txt')
+    concat_video_list_path = os.path.join(TEMP_DIR.name, CONCAT_VIDEO_FILE_NAME)
     concat_file_paths = []
     render_commands = []
 
@@ -242,7 +243,7 @@ def prepare_rendering_options(scene_name='Scene'):
 
         return x_resolution, y_resolution
 
-    def is_output_loseless(scene):
+    def is_output_lossless(scene):
         if BLENDER_VERSION < reference_blender_version:
             return scene.render.ffmpeg.use_lossless_output
         else:
@@ -267,9 +268,9 @@ def prepare_rendering_options(scene_name='Scene'):
                 LOGGER.fatal(error_message, CORES_ENABLED)
                 raise NotEnoughFramesException(error_message, CORES_ENABLED)
 
-            loseless = is_output_loseless(scene)
+            lossless = is_output_lossless(scene)
 
-            LOGGER.debug('Scene "%s" uses loseless encoding: %s', scene.name, loseless)
+            LOGGER.debug('Scene "%s" uses lossless encoding: %s', scene.name, lossless)
 
             return RenderingOptions(
                 total_frames=total_frames,
