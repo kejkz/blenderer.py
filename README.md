@@ -23,13 +23,14 @@ files. It is designed to work on all major operating systems (Windows, MacOS, Li
 
  - Clone [https://vkaran@bitbucket.org/vkaran/blenderer.git](https://vkaran@bitbucket.org/vkaran/blenderer.git) to a local system
 
- - Add `ffmpeg` and `blender` executables to Windows `PATH`. Start CMD prompt as an **Administrator** by pressing Windows start button, entering `cmd`, right clicking on the program icon and selecting `Run As Administrator` from the drop-down menu. Then run these two commands:
+ - Add `ffmpeg` and `blender` executables to Windows `PATH`. Start CMD prompt as an **Administrator** by pressing Windows start button, entering `cmd`, right clicking on the program icon and selecting `Run As Administrator` from the drop-down menu. Then run these two commands:  
 
- ```
- SETX /M PATH "C:\Program Files\ffmpeg\bin;%PATH%"
- SETX /M PATH "C:\Program Files\Blender Foundation\Blender\;%PATH%"
- SETX /M BLENDERER "C:\Documents\blenderer\blenderer.py"
- ```
+
+```batch
+SETX /M PATH "C:\Program Files\ffmpeg\bin;%PATH%"
+SETX /M PATH "C:\Program Files\Blender Foundation\Blender\;%PATH%"
+SETX /M BLENDERER "C:\Documents\blenderer\blenderer.py"
+```
 
 ### macOS
 
