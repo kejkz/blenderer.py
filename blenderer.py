@@ -322,7 +322,7 @@ def parse_optional_args():
     parser = argparse.ArgumentParser(description=usage_text)
 
     parser.add_argument('-so', '--scene-options', type=json.loads, help='Scene rendering options as JSON')
-    parser.add_argument('-ro', '--render_output', type=str, help='Rendering output file location')
+    parser.add_argument('-ro', '--render-output', type=str, help='Rendering output file location')
 
     args = parser.parse_args(argv)
 
