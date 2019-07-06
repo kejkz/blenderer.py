@@ -113,7 +113,7 @@ scene_options=$(cat <<EOF
 }
 EOF
 )
-blender -b someblenderfile.blend -P $BLENDERER -- "$scene_options"
+blender -b someblenderfile.blend -P $BLENDERER -- --scene_options "$scene_options"
 ```
 
 To call a scene rendering without additional filtering:
@@ -130,3 +130,9 @@ blender -b preview.blend -P %BLENDERER%
 
 Video output file is created in the same path as set in
 scene rendering in moment of writing this document.
+
+It is also possible to set an output rendering video path by providing the file name from the command line:
+
+```
+blender -b someblenderfile.blend -P $BLENDERER -- --scene_options "$scene_options" --render_output ~/tmp/render/outputfile.mp4
+```

@@ -221,7 +221,7 @@ def audio_options():
     post_finished_video = '-async 1' # [arg2]
 
 
-def prepare_rendering_options(scene_name='Scene'):
+def prepare_rendering_options(scene_name='Scene', render_filepath=None):
     '''
     Prepare all of the rendering options from the scene name
     Returns rendering options needed to complete process and
@@ -261,6 +261,9 @@ def prepare_rendering_options(scene_name='Scene'):
             resolution = calculate_resolution_percent(scene)
             total_frames = scene.frame_end - scene.frame_start + 1
 
+            if render_filepath == None:
+                render_filepath = bpy.path.abspath(scene.render.filepath)
+
             LOGGER.debug('%i total frames found in a scene "%s".', total_frames, scene_name)
 
             if total_frames < CORES_ENABLED:
@@ -282,7 +285,7 @@ def prepare_rendering_options(scene_name='Scene'):
                 file_format=scene.render.image_settings.file_format,
                 video_format=scene.render.ffmpeg.format,
                 video_codec=scene.render.ffmpeg.codec,
-                render_filepath=bpy.path.abspath(scene.render.filepath)
+                render_filepath=render_filepath
             )
 
     try:
@@ -318,7 +321,8 @@ def parse_optional_args():
 
     parser = argparse.ArgumentParser(description=usage_text)
 
-    parser.add_argument('-so' , '--scene-options', type=json.loads, help='Scene rendering options as JSON')
+    parser.add_argument('-so', '--scene-options', type=json.loads, help='Scene rendering options as JSON')
+    parser.add_argument('-ro', '--render_output', type=str, help='Rendering output file location')
 
     args = parser.parse_args(argv)
 
@@ -341,13 +345,13 @@ def main():
     try:
         check_file_exist()
         check_cpu_count()
-        rendering_options = prepare_rendering_options()
+        script_arguments = parse_optional_args()
+        rendering_options = prepare_rendering_options(render_filepath=script_arguments.render_output)
         LOGGER.debug('Rendering options: %s', rendering_options)
-        filter_options = parse_optional_args()
-        if filter_options:
-            LOGGER.info('Additional filter script arguments: %s', filter_options)
+        if script_arguments.scene_options:
+            LOGGER.info('Additional filter script arguments: %s', script_arguments)
             LOGGER.info('Prepare rendering using filter options...')
-            filterer.SceneModifier(filter_options.scene_options).alter_scene()
+            filterer.SceneModifier(script_arguments.scene_options).alter_scene()
             LOGGER.info('Scene has been modified...')
             LOGGER.info('Save current blender scene to a temp file...')
             blender_file_path = save_temp_blender_file()
