@@ -3,6 +3,7 @@ blender_path=$(which blender)
 blender --version
 echo "blender path: ${blender_path}"
 echo "blenderer.py path: ${BLENDERER}"
+render_output="$HOME/tmp/testfile_01.mp4"
 
 scene_options=$(cat <<EOF
 {
@@ -38,4 +39,4 @@ scene_options=$(cat <<EOF
 EOF
 )
 
-blender -b $1 -P $BLENDERER -- --scene-options "$scene_options"
+blender -b $1 -P $BLENDERER -- --scene-options "$scene_options" --render-output $render_output
