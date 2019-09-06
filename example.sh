@@ -4,6 +4,7 @@ blender --version
 echo "blender path: ${blender_path}"
 echo "blenderer.py path: ${BLENDERER}"
 render_output="$HOME/tmp/testfile_01.mp4"
+images_root_dir="//Images"
 
 scene_options=$(cat <<EOF
 {
@@ -39,4 +40,4 @@ scene_options=$(cat <<EOF
 EOF
 )
 
-blender -b $1 -P $BLENDERER -- --scene-options "$scene_options" --render-output $render_output
+blender -b $1 -P $BLENDERER -- --scene-options "$scene_options" --render-output $render_output --images-root-dir $images_root_dir

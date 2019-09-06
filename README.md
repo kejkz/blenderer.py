@@ -128,11 +128,23 @@ On Windows it's quite similar:
 blender -b preview.blend -P %BLENDERER%
 ```
 
-Video output file is created in the same path as set in
-scene rendering in moment of writing this document.
+### Command line options overview
 
-It is also possible to set an output rendering video path by providing the file name from the command line:
+There are multiple special command line parameters that `blenderer.py` 
+accepts:
 
-```
+
+It is possible to set an output rendering video path 
+by providing the file name from the command line:
+
+```bash
 blender -b someblenderfile.blend -P $BLENDERER -- --scene_options "$scene_options" --render_output ~/tmp/render/outputfile.mp4
+```
+
+Another option option is to define an images root directory. 
+If this option is defined, all of the image objects within the scene
+will be prefixed with that directory name as their reference.
+
+```bash
+blender -b someblenderfile.blend -P $BLENDERER --  --images-root-dir ~/some_dir_with_images_123
 ```

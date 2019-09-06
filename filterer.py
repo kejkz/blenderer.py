@@ -50,13 +50,14 @@ class SceneModifier:
     scene_key = 'scene'
     assets_key = 'assets'
 
-    def __init__(self, filtering_options):
+    def __init__(self, filtering_options, images_root_path):
         try:
             self.scene = filtering_options[self.scene_key]
             self.assets = filtering_options[self.assets_key]
         except KeyError as e:
             print('Missing "%s" section in %s', e.value, scene_options)
             raise SceneFormatException(e.value)
+        self.images_root_path = images_root_path
 
     def set_scene(self):
         '''
@@ -78,8 +79,10 @@ class SceneModifier:
     def hide_object(self, blender_object):
         try:
             blender_object.mute
+            print('object hidden succesfully {}'.format(blender_object))
         except AttributeError:
-            blender_object.hide_render
+            blender_object.hide_render = True
+            print('object hidden succesfully after attribute error: {}'.format(blender_object))
 
     def modify_object(self, blender_object, options):
         if options['hide']:
@@ -101,7 +104,17 @@ class SceneModifier:
             print('Unknown object type "{}", skipping object {}'.format(
                 blender_object.type, options['name']))
 
+    def modify_images_root_path(self):
+        if self.images_root_path:
+            for image in bpy.data.images.values():
+                image.filepath = os.path.join(
+                    self.images_root_path,
+                    bpy.path.basename(image.filepath)
+                )
+                print('Altered filepath: {}'.format(image.filepath))
+
     def alter_scene(self):
+        self.modify_images_root_path()
         for options in self.assets:
             blender_object = self.find_object(options['name'])
             self.modify_object(blender_object, options)

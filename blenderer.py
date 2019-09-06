@@ -11,6 +11,7 @@ from typing import NamedTuple, List
 from collections import namedtuple
 import time
 import json
+import traceback
 
 RenderingOptions = namedtuple(
     'RenderingOptions',
@@ -184,7 +185,7 @@ def render(blender_file_path: str, render_options: RenderingOptions) -> None:
     for core in range(1, CORES_ENABLED + 1):
         output_file_path = temp_video_file_path(core, start_frame, end_frame)
         command = render_command(blender_file_path, start_frame, end_frame, output_file_path)
-        LOGGER.debug('Render command:\n %s', command)
+        LOGGER.debug('Render command:\n %s', ' '.join(command))
         render_commands.append(command)
         concat_file_paths.append(output_file_path)
         start_frame = end_frame + 1
@@ -201,9 +202,16 @@ def render(blender_file_path: str, render_options: RenderingOptions) -> None:
 
     LOGGER.debug(merge_video_files_command)
 
-    subprocess.call(merge_video_files_command, shell=True)
-
-    LOGGER.info('Output file created at %s', render_options.render_filepath)
+    try:
+        output = subprocess.check_output(
+            merge_video_files_command, stderr=subprocess.STDOUT, shell=True, timeout=3, universal_newlines=True)
+    except subprocess.CalledProcessError as exc:
+        LOGGER.fatal("Command FAIL: %s", exc.output)
+        LOGGER.fatal("Command exit status code: %s", exc.returncode)
+        exit(1)
+    else:
+        LOGGER.debug("Command SUCCESS: %s", output)
+        LOGGER.info('Output file created at %s', render_options.render_filepath)
 
     TEMP_DIR.cleanup()
 
@@ -323,6 +331,7 @@ def parse_optional_args():
 
     parser.add_argument('-so', '--scene-options', type=json.loads, help='Scene rendering options as JSON')
     parser.add_argument('-ro', '--render-output', type=str, help='Rendering output file location')
+    parser.add_argument('-ird', '--images-root-dir', type=str, help='Images root directory', default=None)
 
     args = parser.parse_args(argv)
 
@@ -346,17 +355,28 @@ def main():
         check_file_exist()
         check_cpu_count()
         script_arguments = parse_optional_args()
-        rendering_options = prepare_rendering_options(render_filepath=script_arguments.render_output)
-        LOGGER.debug('Rendering options: %s', rendering_options)
-        if script_arguments.scene_options:
-            LOGGER.info('Additional filter script arguments: %s', script_arguments)
-            LOGGER.info('Prepare rendering using filter options...')
-            filterer.SceneModifier(script_arguments.scene_options).alter_scene()
-            LOGGER.info('Scene has been modified...')
-            LOGGER.info('Save current blender scene to a temp file...')
-            blender_file_path = save_temp_blender_file()
-            LOGGER.info('Temp file saved as: {}'.format(blender_file_path))
+
+        if script_arguments:
+            rendering_options = prepare_rendering_options(
+                render_filepath=script_arguments.render_output)
+            LOGGER.debug('Rendering options: %s', rendering_options)
+            if script_arguments.scene_options or script_arguments.images_root_dir:
+                LOGGER.info('Additional filter script arguments: %s', script_arguments)
+                LOGGER.info('Prepare rendering using filter options...')
+                filterer.SceneModifier(
+                    script_arguments.scene_options,
+                    script_arguments.images_root_dir
+                ).alter_scene()
+                LOGGER.info('Scene has been modified...')
+                LOGGER.info('Save current blender scene to a temp file...')
+                blender_file_path = save_temp_blender_file()
+                LOGGER.info('Temp file saved as: {}'.format(blender_file_path))
+            else:
+                blender_file_path = BLENDER_FILE_PATH
+                LOGGER.info('Rendering file: {}'.format(blender_file_path))
         else:
+            LOGGER.debug('No script arguments provided')
+            rendering_options = prepare_rendering_options()
             blender_file_path = BLENDER_FILE_PATH
         render(blender_file_path, rendering_options)
         LOGGER.info('Rendering took %.2f seconds.', time.time() - start_time)
@@ -366,6 +386,11 @@ def main():
 
 
 if __name__ == '__main__' and __package__ is None:
-    sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__))))
-    import filterer
-    main()
+    try:
+        sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__))))
+        import filterer
+        main()
+    except Exception as exc:
+        LOGGER.fatal(traceback.format_exc())
+        LOGGER.fatal(exc)
+        exit(1)
