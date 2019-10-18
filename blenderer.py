@@ -147,11 +147,6 @@ def merge_command(concat_file_path, output_file_path):
     return 'ffmpeg -f concat -safe 0 -y -i {} -c copy {} -loglevel panic'.format(concat_file_path, output_file_path)
 
 
-def add_audio_command(input_file):
-    '''Merges audio from original video to a final video file'''
-    return 'ffmpeg -y -i {} -c:v copy -c:a copy -map 0:v:0 -map 1:a:0 -movflags faststart {}'.format(input_file, OUTPUT_FILE_PATH)
-
-
 def temp_video_file_path(core, start_frame, end_frame):
     output_filename = os.path.join(
         TEMP_DIR.name,
@@ -172,25 +167,22 @@ def call_render_commands(render_commands, verbose=False):
 
 
 def render(blender_file_path: str, render_options: RenderingOptions) -> None:
-    total_frames = render_options.total_frames
-    start_frame = render_options.start_frame
-
-    portion_of_frames_per_core = math.ceil(total_frames / CORES_ENABLED)
-    end_frame = start_frame + portion_of_frames_per_core
+    video_sections = utils.rendering_sections(
+        render_options.start_frame,
+        render_options.total_frames,
+        CORES_ENABLED
+    )
 
     concat_video_list_path = os.path.join(TEMP_DIR.name, CONCAT_VIDEO_FILE_NAME)
     concat_file_paths = []
     render_commands = []
 
-    for core in range(1, CORES_ENABLED + 1):
-        output_file_path = temp_video_file_path(core, start_frame, end_frame)
-        command = render_command(blender_file_path, start_frame, end_frame, output_file_path)
+    for core, section in enumerate(video_sections, start=1):
+        output_file_path = temp_video_file_path(core, section[0], section[1])
+        command = render_command(blender_file_path, section[0], section[1], output_file_path)
         LOGGER.debug('Render command:\n %s', ' '.join(command))
         render_commands.append(command)
         concat_file_paths.append(output_file_path)
-        start_frame = end_frame + 1
-        end_frame += portion_of_frames_per_core
-
 
     with open(concat_video_list_path, 'w') as f:
         for video in concat_file_paths:
@@ -389,6 +381,7 @@ if __name__ == '__main__' and __package__ is None:
     try:
         sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__))))
         import filterer
+        import utils
         main()
     except Exception as exc:
         LOGGER.fatal(traceback.format_exc())
