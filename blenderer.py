@@ -25,7 +25,8 @@ RenderingOptions = namedtuple(
         'video_codec',
         'x_resolution',
         'y_resolution',
-        'render_filepath'
+        'render_filepath',
+        'temp_filepath'
     ]
 )
 
@@ -190,22 +191,37 @@ def render(blender_file_path: str, render_options: RenderingOptions) -> None:
 
     call_render_commands(render_commands)
 
-    merge_video_files_command = merge_command(concat_video_list_path, render_options.render_filepath)
+    merge_video_files_command = merge_command(concat_video_list_path, render_options.temp_filepath)
 
     LOGGER.debug(merge_video_files_command)
 
+    run_command(merge_video_files_command, 3)
+
+    LOGGER.info('Output file created at %s', render_options.render_filepath)
+
+    audio_filepath = os.path.abspath('Audio/Audio.mp3')
+    merge_audio_to_video_command = embed_audio_command(
+        render_options.temp_filepath,
+        audio_filepath,
+        render_options.render_filepath)
+
+    LOGGER.debug(merge_audio_to_video_command)
+
+    run_command(merge_audio_to_video_command, 30)
+
+    TEMP_DIR.cleanup()
+
+
+def run_command(command, timeout):
     try:
         output = subprocess.check_output(
-            merge_video_files_command, stderr=subprocess.STDOUT, shell=True, timeout=3, universal_newlines=True)
+            command, stderr=subprocess.STDOUT, shell=True, timeout=timeout, universal_newlines=True)
     except subprocess.CalledProcessError as exc:
         LOGGER.fatal("Command FAIL: %s", exc.output)
         LOGGER.fatal("Command exit status code: %s", exc.returncode)
         exit(1)
     else:
         LOGGER.debug("Command SUCCESS: %s", output)
-        LOGGER.info('Output file created at %s', render_options.render_filepath)
-
-    TEMP_DIR.cleanup()
 
 
 def check_cpu_count():
@@ -215,10 +231,12 @@ def check_cpu_count():
     LOGGER.info('Utilizing %i cores', CORES_ENABLED)
 
 
-def audio_options():
+def embed_audio_command(video_file_path, audio_file_path, output_file_path):
+    '''Embed video and audio'''
     post_full_audio = '-c:v copy -c:a copy -map 0:v:0 -map 1:a:0'
     post_full_audio += ' -movflags faststart' # [arg1]
     post_finished_video = '-async 1' # [arg2]
+    return 'ffmpeg -i {} -i {} -y -c:v copy -map 0:v:0 -map 1:a:0 {}'.format(video_file_path, audio_file_path, output_file_path)
 
 
 def prepare_rendering_options(scene_name='Scene', render_filepath=None):
@@ -264,6 +282,7 @@ def prepare_rendering_options(scene_name='Scene', render_filepath=None):
             if render_filepath == None:
                 render_filepath = bpy.path.abspath(scene.render.filepath)
 
+            temp_filepath = os.path.splitext(render_filepath)[0] + '_tmp' + os.path.splitext(render_filepath)[1]
             LOGGER.debug('%i total frames found in a scene "%s".', total_frames, scene_name)
 
             if total_frames < CORES_ENABLED:
@@ -285,7 +304,8 @@ def prepare_rendering_options(scene_name='Scene', render_filepath=None):
                 file_format=scene.render.image_settings.file_format,
                 video_format=scene.render.ffmpeg.format,
                 video_codec=scene.render.ffmpeg.codec,
-                render_filepath=render_filepath
+                render_filepath=render_filepath,
+                temp_filepath=temp_filepath
             )
 
     try:
