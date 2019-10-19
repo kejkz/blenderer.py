@@ -13,6 +13,8 @@ import time
 import json
 import traceback
 
+__version__ = '0.0.1'
+
 RenderingOptions = namedtuple(
     'RenderingOptions',
     [
@@ -284,7 +286,9 @@ def prepare_rendering_options(scene_name='Scene', render_filepath=None):
             if render_filepath == None:
                 render_filepath = bpy.path.abspath(scene.render.filepath)
 
-            temp_filepath = os.path.splitext(render_filepath)[0] + '_tmp' + os.path.splitext(render_filepath)[1]
+            # temp_filepath = os.path.splitext(render_filepath)[0] + '_tmp' + os.path.splitext(render_filepath)[1]
+
+            temp_filepath = os.path.join(TEMP_DIR.name, 'concat_tmp.mp4')
             LOGGER.debug('%i total frames found in a scene "%s".', total_frames, scene_name)
 
             if total_frames < CORES_ENABLED:
