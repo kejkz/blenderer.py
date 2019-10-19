@@ -194,24 +194,24 @@ def render(blender_file_path: str, render_options: RenderingOptions) -> None:
 
     call_render_commands(render_commands)
 
-    merge_video_files_command = merge_command(concat_video_list_path, render_options.temp_filepath)
+    if os.path.isfile(render_options.audio_filepath):
+        merge_video_files_command = merge_command(concat_video_list_path, render_options.temp_filepath)
+        run_command(merge_video_files_command, 3)
 
-    LOGGER.debug(merge_video_files_command)
+        merge_audio_to_video_command = embed_audio_command(
+            render_options.temp_filepath,
+            render_options.audio_filepath,
+            render_options.render_filepath
+        )
 
-    run_command(merge_video_files_command, 3)
+        LOGGER.debug(merge_audio_to_video_command)
+
+        run_command(merge_audio_to_video_command, 30)
+    else:
+        merge_video_files_command = merge_command(concat_video_list_path, render_options.output_file_path)
+        run_command(merge_video_files_command, 3)
 
     LOGGER.info('Output file created at %s', render_options.render_filepath)
-
-    merge_audio_to_video_command = embed_audio_command(
-        render_options.temp_filepath,
-        render_options.audio_filepath,
-        render_options.render_filepath
-    )
-
-    LOGGER.debug(merge_audio_to_video_command)
-
-    run_command(merge_audio_to_video_command, 30)
-
     TEMP_DIR.cleanup()
 
 
@@ -281,12 +281,10 @@ def prepare_rendering_options(scene_name='Scene', render_filepath=None):
                 raise UpdateAutoSplitException(error_message)
 
             resolution = calculate_resolution_percent(scene)
-            total_frames = scene.frame_end - scene.frame_start
+            total_frames = scene.frame_end - scene.frame_start + 1
 
             if render_filepath == None:
                 render_filepath = bpy.path.abspath(scene.render.filepath)
-
-            # temp_filepath = os.path.splitext(render_filepath)[0] + '_tmp' + os.path.splitext(render_filepath)[1]
 
             temp_filepath = os.path.join(TEMP_DIR.name, 'concat_tmp.mp4')
             LOGGER.debug('%i total frames found in a scene "%s".', total_frames, scene_name)

@@ -7,8 +7,8 @@ import unittest
 class TestRenderingSections(unittest.TestCase):
     def test_render_section(self):
         self.assertEqual(
-            rendering_sections(1, 481, 4),
-            [(1, 121), (122, 242), (243, 363), (364, 481)]
+            rendering_sections(0, 481, 4),
+            [(0, 120), (121, 241), (242, 362), (363, 480)]
         )
 
 if __name__ == '__main__':

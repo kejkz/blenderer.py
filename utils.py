@@ -11,6 +11,6 @@ def rendering_sections(start_frame, total_frames, sections=4):
         start_frame = end_frame + 1
         end_frame += portion_of_frames_per_core
         if end_frame >= total_frames:
-          end_frame = total_frames
+          end_frame = total_frames - 1
 
     return result
