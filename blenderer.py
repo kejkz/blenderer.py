@@ -26,7 +26,8 @@ RenderingOptions = namedtuple(
         'x_resolution',
         'y_resolution',
         'render_filepath',
-        'temp_filepath'
+        'temp_filepath',
+        'audio_filepath'
     ]
 )
 
@@ -199,11 +200,11 @@ def render(blender_file_path: str, render_options: RenderingOptions) -> None:
 
     LOGGER.info('Output file created at %s', render_options.render_filepath)
 
-    audio_filepath = os.path.abspath('Audio/Audio.mp3')
     merge_audio_to_video_command = embed_audio_command(
         render_options.temp_filepath,
-        audio_filepath,
-        render_options.render_filepath)
+        render_options.audio_filepath,
+        render_options.render_filepath
+    )
 
     LOGGER.debug(merge_audio_to_video_command)
 
@@ -278,7 +279,7 @@ def prepare_rendering_options(scene_name='Scene', render_filepath=None):
                 raise UpdateAutoSplitException(error_message)
 
             resolution = calculate_resolution_percent(scene)
-            total_frames = scene.frame_end - scene.frame_start + 1
+            total_frames = scene.frame_end - scene.frame_start
 
             if render_filepath == None:
                 render_filepath = bpy.path.abspath(scene.render.filepath)
@@ -295,6 +296,10 @@ def prepare_rendering_options(scene_name='Scene', render_filepath=None):
 
             LOGGER.debug('Scene "%s" uses lossless encoding: %s', scene.name, lossless)
 
+            audio_filepath = bpy.path.abspath(bpy.data.sounds[0].filepath)
+
+            LOGGER.debug('Audio file found with absolute path {}'.format(audio_filepath))
+
             return RenderingOptions(
                 total_frames=total_frames,
                 frames_per_second=scene.render.fps,
@@ -306,7 +311,8 @@ def prepare_rendering_options(scene_name='Scene', render_filepath=None):
                 video_format=scene.render.ffmpeg.format,
                 video_codec=scene.render.ffmpeg.codec,
                 render_filepath=render_filepath,
-                temp_filepath=temp_filepath
+                temp_filepath=temp_filepath,
+                audio_filepath=audio_filepath
             )
 
     try:
