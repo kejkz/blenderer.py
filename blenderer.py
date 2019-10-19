@@ -232,11 +232,12 @@ def check_cpu_count():
 
 
 def embed_audio_command(video_file_path, audio_file_path, output_file_path):
-    '''Embed video and audio'''
-    post_full_audio = '-c:v copy -c:a copy -map 0:v:0 -map 1:a:0'
-    post_full_audio += ' -movflags faststart' # [arg1]
-    post_finished_video = '-async 1' # [arg2]
-    return 'ffmpeg -i {} -i {} -y -c:v copy -map 0:v:0 -map 1:a:0 {}'.format(video_file_path, audio_file_path, output_file_path)
+    '''
+    Embed video and audio. These parameters are only kept for reference
+    -movflags faststart
+    -async 1
+    '''
+    return 'ffmpeg -i {} -i {} -y -c:v copy -map 0:v:0 -map 1:a:0 -hide_banner -loglevel panic {}'.format(video_file_path, audio_file_path, output_file_path)
 
 
 def prepare_rendering_options(scene_name='Scene', render_filepath=None):
