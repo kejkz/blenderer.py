@@ -208,7 +208,7 @@ def render(blender_file_path: str, render_options: RenderingOptions) -> None:
 
         run_command(merge_audio_to_video_command, 30)
     else:
-        merge_video_files_command = merge_command(concat_video_list_path, render_options.output_file_path)
+        merge_video_files_command = merge_command(concat_video_list_path, render_options.render_filepath)
         run_command(merge_video_files_command, 3)
 
     LOGGER.info('Output file created at %s', render_options.render_filepath)
