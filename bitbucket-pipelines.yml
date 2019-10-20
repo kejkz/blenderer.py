@@ -8,3 +8,4 @@ pipelines:
           - apt-get update && apt-get install -y blender libav-tools ffmpeg
           - mkdir $HOME/tmp/
           - ./example.sh test01.blend
+          - python3 blenderer_test.py

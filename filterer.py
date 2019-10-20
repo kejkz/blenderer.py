@@ -115,6 +115,10 @@ class SceneModifier:
 
     def alter_scene(self):
         self.modify_images_root_path()
+        self.disable_audio()
         for options in self.assets:
             blender_object = self.find_object(options['name'])
             self.modify_object(blender_object, options)
+
+    def disable_audio(self):
+        bpy.data.scenes[self.scene].render.ffmpeg.audio_codec = 'NONE'
