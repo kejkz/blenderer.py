@@ -260,7 +260,7 @@ def prepare_rendering_options(scene_name='Scene', render_filepath=None):
         x_resolution = int(res_percent * 0.01 * scene.render.resolution_x)
         y_resolution = int(res_percent * 0.01 * scene.render.resolution_y)
 
-        if x_resolution % 2 != 0  or y_resolution % 2 != 0:
+        if x_resolution % 2 != 0 or y_resolution % 2 != 0:
             raise ResolutionNotDivisableException('Resolution is not divisible by 2')
 
         return x_resolution, y_resolution
@@ -365,13 +365,15 @@ def parse_optional_args():
 
 def save_temp_blender_file() -> str:
     '''Save current blend file to a temporary location before rendering'''
-    tempfile_path = os.path.join(TEMP_DIR.name, bpy.path.basename(BLENDER_FILE_PATH))
+    tempfile_path = os.path.join(
+        TEMP_DIR.name, bpy.path.basename(BLENDER_FILE_PATH)
+    )
     bpy.ops.wm.save_as_mainfile(filepath=tempfile_path)
     return tempfile_path
 
 
 def main():
-    start_time =  time.time()
+    start_time = time.time()
     try:
         check_file_exist()
         check_cpu_count()
@@ -408,7 +410,9 @@ def main():
 
 if __name__ == '__main__' and __package__ is None:
     try:
-        sys.path.append(os.path.abspath(os.path.dirname(os.path.abspath(__file__))))
+        sys.path.append(
+            os.path.abspath(os.path.dirname(os.path.abspath(__file__)))
+        )
         import filterer
         import utils
         main()
