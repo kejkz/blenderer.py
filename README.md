@@ -1,5 +1,7 @@
 # Blenderer.py
 
+![Blenderer.py](https://github.com/pypvideo/blenderer.py/workflows/Python%20application/badge.svg?branch=master)
+
 ## Description
 
 `Blenderer.py` is a Python 3.5 based script that utilizes multi-processor
