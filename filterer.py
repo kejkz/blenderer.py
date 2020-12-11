@@ -107,11 +107,14 @@ class SceneModifier:
     def modify_images_root_path(self):
         if self.images_root_path:
             for image in bpy.data.images.values():
-                image.filepath = os.path.join(
-                    self.images_root_path,
-                    bpy.path.basename(image.filepath)
-                )
-                print('Altered filepath: {}'.format(image.filepath))
+                if image.filepath.startswith('//Images'):
+                    image.filepath = os.path.join(
+                        self.images_root_path,
+                        bpy.path.basename(image.filepath)
+                    )
+                    print('Altered filepath: {}'.format(image.filepath))
+                else:
+                    print('Not altered image path {}'.format(image.filepath))
 
     def alter_scene(self):
         self.modify_images_root_path()
