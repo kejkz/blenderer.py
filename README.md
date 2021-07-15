@@ -23,7 +23,7 @@ files. It is designed to work on all major operating systems (Windows, MacOS, Li
 
  - Download statically compiled [ffmpeg](https://ffmpeg.zeranoe.com/builds/win64/static/ffmpeg-20180427-4833050-win64-static.zip) and unzip it in any directory on hard drive
 
- - Clone [https://vkaran@bitbucket.org/vkaran/blenderer.git](https://vkaran@bitbucket.org/vkaran/blenderer.git) to a local system
+ - Clone this repository to a local system
 
  - Add `ffmpeg` and `blender` executables to Windows `PATH`. Start CMD prompt as an **Administrator** by pressing Windows start button, entering `cmd`, right clicking on the program icon and selecting `Run As Administrator` from the drop-down menu. Then run these two commands:  
 
